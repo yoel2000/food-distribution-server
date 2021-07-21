@@ -44,11 +44,19 @@ module.exports = function (app, passport) {
     });
 
     // process the login form
-    app.post('/login', passport.authenticate('local-login', {
-        successRedirect: '/profile', // redirect to the secure profile section
+    app.post('/login1', passport.authenticate('local-login', {
+        successRedirect: 'http://localhost:3000/chat', // redirect to the secure profile section
         failureRedirect: '/login', // redirect back to the signup page if there is an error
         failureFlash: true // allow flash messages
     }));
+
+    app.post('/login', function (req, res, next) {
+        passport.authenticate('local-login', function (err, user, info) {
+            if (err) { return next(err); }
+            if (!user) { return res.send(400); }
+            res.status(200).json({user:user});
+        })(req, res, next);
+    });
 
     // SIGNUP =================================
     // show the signup form
@@ -64,9 +72,9 @@ module.exports = function (app, passport) {
     }));
 
     app.post('/signup2', async (req, res) => {
-       
+
                 console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
-                
+
                 // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
                 //     debug("Missing user to add!!!");
                 // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
@@ -75,7 +83,7 @@ module.exports = function (app, passport) {
                 //     debug("Missing name for  userto add!!!");
                 // else if (req.body.email === undefined || req.body.email === null || req.body.email === "")
                 //     debug("Missing name for  userto add!!!");
-           
+
 
                     try {
                         console.log(req.body.email)
@@ -103,7 +111,7 @@ module.exports = function (app, passport) {
                     else
                         debug('User to be added already exists or checkin user existence failure!');
                 }
-            
+
             //.then(res.redirect('http://localhost:3000/chat'))
     );
 
