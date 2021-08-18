@@ -25,6 +25,11 @@ require('./config/passport')(passport); // pass passport for configuration
 //const corsOptions = { origin: "http://localhost:3000"}
 app.use(cors());
 
+/*app.use(cors({
+    origin: "http://localhost:3000",
+    credentials: true
+}))*/
+
 // set up our express application
 app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)

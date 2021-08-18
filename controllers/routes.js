@@ -54,7 +54,8 @@ module.exports = function (app, passport) {
         passport.authenticate('local-login', function (err, user, info) {
             if (err) { return next(err); }
             if (!user) { return res.send(400); }
-            res.status(200).json({user:user});
+            res.json({user:user})
+            // res.status(200).json({user:user});
         })(req, res, next);
     });
 
