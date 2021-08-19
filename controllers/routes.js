@@ -2,6 +2,8 @@
 
 const User = require("../models/user");
 
+let listDistributors = []
+
 
 module.exports = function (app, passport) {
 
@@ -41,6 +43,11 @@ module.exports = function (app, passport) {
     // show the login form
     app.get('/login', function (req, res) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
+    });
+
+    app.post('/addDistributor', function(req, res) {
+        listDistributors.push(req.body)
+        res.json(listDistributors)
     });
 
     // process the login form
