@@ -5,9 +5,9 @@ const User = require("../models/user");
 let listDistributors = [
     {
     "id": 0,
+    "telephone": "05012345",
     "name": "aaa",
-    "email": "a.gmail.com",
-    "telephone": "05012345"
+    "email": "a.gmail.com"
     },
 
 ]
@@ -53,14 +53,24 @@ module.exports = function (app, passport) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
-    app.post('/addDistributor', function(req, res) {
-        listDistributors.push(req.body)
+    app.post('/addDistributor', function(req, res)
+    {
+        let obj = {...req.body, id:listDistributors.length}
+        listDistributors.push(obj)
+        console.log(listDistributors)
         res.json(listDistributors)
     });
 
     app.get('/distributors', function(req, res) {
         res.json(listDistributors)
     });
+
+    app.put('/distributors/:id', function(req, res) {
+        let index = listDistributors.findIndex(x => x.id == req.params.id)
+        if (index > -1)
+            listDistributors[index] = req.body;
+        res.json(listDistributors)
+    })
 
     // process the login form
     app.post('/login1', passport.authenticate('local-login', {
