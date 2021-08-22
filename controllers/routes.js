@@ -2,7 +2,15 @@
 
 const User = require("../models/user");
 
-let listDistributors = []
+let listDistributors = [
+    {
+    "id": 0,
+    "name": "aaa",
+    "email": "a.gmail.com",
+    "telephone": "05012345"
+    },
+
+]
 
 
 module.exports = function (app, passport) {
@@ -47,6 +55,10 @@ module.exports = function (app, passport) {
 
     app.post('/addDistributor', function(req, res) {
         listDistributors.push(req.body)
+        res.json(listDistributors)
+    });
+
+    app.get('/distributors', function(req, res) {
         res.json(listDistributors)
     });
 
