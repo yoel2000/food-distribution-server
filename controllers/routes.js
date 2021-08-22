@@ -9,7 +9,15 @@ let listDistributors = [
     "name": "aaa",
     "email": "a.gmail.com"
     },
+]
 
+
+let productsToDistribute = [
+    {
+    "id": 0,
+    "name": "chocolate",
+    "date": "23.08.2021"
+    },
 ]
 
 
@@ -71,6 +79,19 @@ module.exports = function (app, passport) {
             listDistributors[index] = req.body;
         res.json(listDistributors)
     })
+
+    app.post('/addProduct', function(req, res)
+    {
+        let obj = {...req.body, id:productsToDistribute.length}
+        productsToDistribute.push(obj)
+        console.log(productsToDistribute)
+        res.json(productsToDistribute)
+    });
+
+    app.get('/products', function(req, res) {
+        res.json(productsToDistribute)
+    });
+
 
     // process the login form
     app.post('/login1', passport.authenticate('local-login', {
