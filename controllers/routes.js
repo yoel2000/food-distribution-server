@@ -16,7 +16,8 @@ let productsToDistribute = [
     {
     "id": 0,
     "name": "chocolate",
-    "date": "23.08.2021"
+    "date": "23.08.2021",
+    "address": "21 Havaad Haleumi, Jerusalem"
     },
 ]
 
@@ -91,6 +92,13 @@ module.exports = function (app, passport) {
     app.get('/products', function(req, res) {
         res.json(productsToDistribute)
     });
+
+    app.put('/distributions/:id', function(req, res) {
+        let index = productsToDistribute.findIndex(x => x.id == req.params.id)
+        if (index > -1)
+            productsToDistribute[index] = req.body;
+        res.json(productsToDistribute)
+    })
 
 
     // process the login form
