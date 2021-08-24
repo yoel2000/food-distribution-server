@@ -1,6 +1,7 @@
 //var cors = require('cors');
 
 const User = require("../models/user");
+const Message = require("../models/message");
 
 let listDistributors = [
     {
@@ -98,6 +99,27 @@ module.exports = function (app, passport) {
         if (index > -1)
             productsToDistribute[index] = req.body;
         res.json(productsToDistribute)
+    })
+
+    app.get('/messages', (req, res) => {
+        Message.find({}, (err, messages) => {
+            res.send(messages);
+        })
+    })
+    
+    app.post('/messages', (req, res) => {
+        var message = new Message(req.body);
+        console.log(req.body)
+        message.save((err) => {
+            if (err)
+                sendStatus(500);
+            io.emit('message', req.body);
+            res.sendStatus(200);
+        })
+    })
+    
+    io.on('connection', () => { 
+        console.log('a user is connected')
     })
 
 

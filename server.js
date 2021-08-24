@@ -9,6 +9,8 @@ var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
 var cors = require('cors');
+const socket = require("socket.io");
+
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
@@ -52,9 +54,14 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 //     next();
 //   });
 
-// routes ======================================================================
-require('./controllers/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
-
 // launch ======================================================================
-app.listen(port);
+let server= app.listen(port);
+const io = socket(server,{cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }});
 console.log('The magic happens on port ' + port);
+// routes ======================================================================
+require('./controllers/routes.js')(app, passport, io); // load our routes and pass in our app and fully configured passport
+
+
