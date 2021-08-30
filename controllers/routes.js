@@ -1,5 +1,4 @@
-//var cors = require('cors');
-
+const skmeans = require("skmeans");
 const User = require("../models/user");
 
 let listDistributors = [
@@ -9,15 +8,69 @@ let listDistributors = [
     "name": "aaa",
     "email": "a.gmail.com"
     },
+    {
+    "id": 1,
+    "telephone": "05054321",
+    "name": "David",
+    "email": "david.gmail.com"
+    },
+    {
+    "id": 2,
+    "telephone": "05056789",
+    "name": "Avraham",
+    "email": "avraham.gmail.com"
+    },
 ]
 
 
 let productsToDistribute = [
     {
-    "id": 0,
     "name": "chocolate",
-    "date": "23.08.2021",
-    "address": "21 Havaad Haleumi, Jerusalem"
+    "date": "2021-08-30",
+    "address": "Jérusalem",
+    "id": 0,
+    },
+    {
+        "name": "milk",
+        "date": "2021-08-30",
+        "address": "Tel Aviv",
+        "id": 1,
+    },
+    {
+        "name": "boyom",
+        "date": "2021-08-30",
+        "address": "havaad haleumi",
+        "id": 2,
+    },
+    {
+        "name": "boyom",
+        "date": "2021-08-30",
+        "address": "Ashkelon",
+        "id": 3,
+    },
+    {
+        "name": "a",
+        "date": "2021-08-30",
+        "address": "בית שמש",
+        "id": 4,
+    },
+    {
+        "name": "b",
+        "date": "2021-09-01",
+        "address": "Bakka",
+        "id": 5,
+    },
+    {
+        "name": "c",
+        "date": "2021-08-30",
+        "address": "Beer Sheva",
+        "id": 6,
+    },
+    {
+        "name": "d",
+        "date": "2021-08-30",
+        "address": "Haifa",
+        "id": 7,
     },
 ]
 
@@ -62,7 +115,7 @@ module.exports = function (app, passport) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
-    app.post('/addDistributor', function(req, res)
+    app.put('/addDistributor', function(req, res)
     {
         let obj = {...req.body, id:listDistributors.length}
         listDistributors.push(obj)
@@ -81,7 +134,7 @@ module.exports = function (app, passport) {
         res.json(listDistributors)
     })
 
-    app.post('/addProduct', function(req, res)
+    app.put('/addProduct', function(req, res)
     {
         let obj = {...req.body, id:productsToDistribute.length}
         productsToDistribute.push(obj)
@@ -98,6 +151,31 @@ module.exports = function (app, passport) {
         if (index > -1)
             productsToDistribute[index] = req.body;
         res.json(productsToDistribute)
+    })
+
+    app.get('/deliveriestoday', function(req, res) {
+        date = new Date();
+        date = date.toISOString().split('T')[0];
+        newDeliver = []
+        productsToDistribute.map((p) =>
+        {
+            values = Object.values(p);
+            if ((values[1] === date) ) {
+                newDeliver = [...newDeliver, values];
+            }
+        })
+        res.json(newDeliver);
+    });
+
+    app.post('/dispatch', function(req, res){
+        data = []
+        for (let i = 0; i < req.body.latitude.length; i++) {
+            data = [...data, [req.body.latitude[i], req.body.longitude[i]]]
+        }
+        const k = req.body.dividersList.length;
+        results = skmeans(data, k, "kmpp", 10);
+        console.log(results)
+        res.json(results)
     })
 
 
