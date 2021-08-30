@@ -2,6 +2,8 @@
 
 const User = require("../models/user");
 const Message = require("../models/message");
+const distribution = require("../models/distribution");
+const product = require("../models/product");
 
 let listDistributors = [
     {
@@ -81,6 +83,21 @@ module.exports = function (app, passport, io) {
         res.json(listDistributors)
     })
 
+    app.post('/distributions', async (req, res) => {
+        var dist = new distribution(req.body);
+        dist.save((err) => {
+            if (err)
+                res.sendStatus(500);;
+        })
+        let list= await distribution.find({})
+        res.json(list);
+    })
+
+    app.get('/distributions', async (req, res) => {
+        let list= await distribution.find({})
+        res.json(list);
+    })
+
     app.post('/addProduct', function (req, res) {
         let obj = { ...req.body, id: productsToDistribute.length }
         productsToDistribute.push(obj)
@@ -90,6 +107,22 @@ module.exports = function (app, passport, io) {
 
     app.get('/products', function (req, res) {
         res.json(productsToDistribute)
+    });
+
+    app.get('/products2', async function (req, res) {
+        let list= await product.find({});
+        res.json(list)
+    });
+
+    app.post('/products', async function (req, res) {
+        console.log(req.body.name)
+        var p = new product(req.body);
+        p.save((err) => {
+            if (err)
+                res.sendStatus(500);;
+        })
+        let list= await product.find({})
+        res.json(list);
     });
 
     app.put('/distributions/:id', function (req, res) {
