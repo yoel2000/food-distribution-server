@@ -4,9 +4,9 @@ var mongoose = require('mongoose');
 var messageSchema = mongoose.Schema({
         from: String,
         to: String,
-        text: String
-
-});
+        text: String,
+        isRead:Boolean,
+},{ timestamps: true });
 
 // create the model for users and expose it to our app
 module.exports = mongoose.model('Message', messageSchema);

@@ -5,25 +5,25 @@ const Message = require("../models/message");
 
 let listDistributors = [
     {
-    "id": 0,
-    "telephone": "05012345",
-    "name": "aaa",
-    "email": "a.gmail.com"
+        "id": 0,
+        "telephone": "05012345",
+        "name": "aaa",
+        "email": "a.gmail.com"
     },
 ]
 
 
 let productsToDistribute = [
     {
-    "id": 0,
-    "name": "chocolate",
-    "date": "23.08.2021",
-    "address": "21 Havaad Haleumi, Jerusalem"
+        "id": 0,
+        "name": "chocolate",
+        "date": "23.08.2021",
+        "address": "21 Havaad Haleumi, Jerusalem"
     },
 ]
 
 
-module.exports = function (app, passport) {
+module.exports = function (app, passport, io) {
 
     // normal routes ===============================================================
     // app.use(cors());
@@ -63,38 +63,36 @@ module.exports = function (app, passport) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
-    app.post('/addDistributor', function(req, res)
-    {
-        let obj = {...req.body, id:listDistributors.length}
+    app.post('/addDistributor', function (req, res) {
+        let obj = { ...req.body, id: listDistributors.length }
         listDistributors.push(obj)
         console.log(listDistributors)
         res.json(listDistributors)
     });
 
-    app.get('/distributors', function(req, res) {
+    app.get('/distributors', function (req, res) {
         res.json(listDistributors)
     });
 
-    app.put('/distributors/:id', function(req, res) {
+    app.put('/distributors/:id', function (req, res) {
         let index = listDistributors.findIndex(x => x.id == req.params.id)
         if (index > -1)
             listDistributors[index] = req.body;
         res.json(listDistributors)
     })
 
-    app.post('/addProduct', function(req, res)
-    {
-        let obj = {...req.body, id:productsToDistribute.length}
+    app.post('/addProduct', function (req, res) {
+        let obj = { ...req.body, id: productsToDistribute.length }
         productsToDistribute.push(obj)
         console.log(productsToDistribute)
         res.json(productsToDistribute)
     });
 
-    app.get('/products', function(req, res) {
+    app.get('/products', function (req, res) {
         res.json(productsToDistribute)
     });
 
-    app.put('/distributions/:id', function(req, res) {
+    app.put('/distributions/:id', function (req, res) {
         let index = productsToDistribute.findIndex(x => x.id == req.params.id)
         if (index > -1)
             productsToDistribute[index] = req.body;
@@ -103,23 +101,48 @@ module.exports = function (app, passport) {
 
     app.get('/messages', (req, res) => {
         Message.find({}, (err, messages) => {
-            res.send(messages);
+            console.log(messages)
+            res.json(messages);
         })
     })
-    
+
+    app.post('/myMessages', (req, res) => {
+        console.log("from"+req.body.from)
+        console.log("to"+req.body.to)
+        if (req.body.to)
+        Message.find({ $or: [{ from: req.body.from, to: req.body.to }, { from: req.body.to, to: req.body.from }] }, (err, messages) => {
+            if (err) console.log(err)
+            console.log(messages.count)
+            res.json(messages);
+        })
+        else{
+            Message.find({ $or: [{ from: req.body.from }, { to: req.body.from }] }, (err, messages) => {
+                if (err) console.log(err)
+                console.log(messages.count)
+                res.json(messages);
+            })
+        }
+    })
+
     app.post('/messages', (req, res) => {
         var message = new Message(req.body);
         console.log(req.body)
         message.save((err) => {
             if (err)
-                sendStatus(500);
+                res.sendStatus(500);
             io.emit('message', req.body);
             res.sendStatus(200);
         })
     })
-    
-    io.on('connection', () => { 
+
+    io.on('connection', () => {
         console.log('a user is connected')
+    })
+
+    app.get('/users', (req, res) => {
+        User.find({}, (err, users) => {
+            res.json(users);
+        })
     })
 
 
@@ -132,12 +155,22 @@ module.exports = function (app, passport) {
 
     app.post('/login', function (req, res, next) {
         passport.authenticate('local-login', function (err, user, info) {
+            console.log("gggg")
             if (err) { return next(err); }
-            if (!user) { return res.send(400); }
-            res.json({user:user})
-            // res.status(200).json({user:user});
+            console.log("user-->")
+
+            console.log(user)
+
+            if (!user) { return res.sendStatus(400); }
+            res.json({ user: user })
         })(req, res, next);
     });
+
+    // app.post('/login', passport.authenticate('local-login', {
+    //     successRedirect : '/profile', // redirect to the secure profile section
+    //     failureRedirect : '/login', // redirect back to the signup page if there is an error
+    //     failureFlash : true // allow flash messages
+    // }));
 
     // SIGNUP =================================
     // show the signup form
@@ -154,46 +187,53 @@ module.exports = function (app, passport) {
 
     app.post('/signup2', async (req, res) => {
 
-                console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
+        console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
 
-                // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
-                //     debug("Missing user to add!!!");
-                // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
-                //     debug("Missing password for user to add!!!");
-                // else if (req.body.name === undefined || req.body.name === null || req.body.name === "")
-                //     debug("Missing name for  userto add!!!");
-                // else if (req.body.email === undefined || req.body.email === null || req.body.email === "")
-                //     debug("Missing name for  userto add!!!");
+        // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
+        //     debug("Missing user to add!!!");
+        // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
+        //     debug("Missing password for user to add!!!");
+        // else if (req.body.name === undefined || req.body.name === null || req.body.name === "")
+        //     debug("Missing name for  userto add!!!");
+        // else if (req.body.email === undefined || req.body.email === null || req.body.email === "")
+        //     debug("Missing name for  userto add!!!");
 
 
-                    try {
-                        console.log(req.body.email)
-                        user = await User.findOne({ 'local.email': req.body.email }).exec();
-                    } catch (err) {
-                        // console.log(err)
-                        debug(`get user for adding failure: ${err}`);
-                    }
-                    console.log(user)
-                    if (user === null)
-                        try {
-                            var newUser = new User();
-                            newUser.local.firstname= req.body.firstname;
-                            newUser.local.lastname= req.body.lastname;
-                            newUser.local.email    = req.body.email;
-                            newUser.local.password = newUser.generateHash(req.body.password);
-                            await newUser.save().catch(e=>console.log(e));
-                            //await User.CREATE([req.body.name, req.body.username, req.body.password, req.body.email, req.body.admin !== undefined]);
-                            debug('User created:' + user);
-                            res.sendStatus(200)
-                        } catch (err) {
-                            console.log(err)
-                            debug("Error creating a user: " + err);
-                        }
-                    else
-                        debug('User to be added already exists or checkin user existence failure!');
-                }
+        try {
+            //console.log(req.body.email)
+            user = await User.findOne({ 'local.email': req.body.email }).exec();
+        } catch (err) {
+            // console.log(err)
+            debug(`get user for adding failure: ${err}`);
+        }
+        //console.log(user)
 
-            //.then(res.redirect('http://localhost:3000/chat'))
+        if (user === null) {
+            console.log("user is null")
+            try {
+                var newUser = new User();
+                newUser.local.firstname = req.body.firstname;
+                newUser.local.lastname = req.body.lastname;
+                newUser.local.email = req.body.email;
+                newUser.local.password = newUser.generateHash(req.body.password);
+                await newUser.save().catch(e => console.log(e));
+                //await User.CREATE([req.body.name, req.body.username, req.body.password, req.body.email, req.body.admin !== undefined]);
+                //debug('User created:' + newUser);
+                res.json({ user: newUser }).sendStatus(200)
+            } catch (err) {
+                console.log(err)
+                //debug("Error creating a user: " + err);
+            }
+        }
+        else {
+            console.log("fff")
+            //debug('User to be added already exists or checkin user existence failure!');
+            res.sendStatus(400)
+
+        }
+    }
+
+        //.then(res.redirect('http://localhost:3000/chat'))
     );
 
     // facebook -------------------------------
