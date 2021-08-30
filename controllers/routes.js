@@ -221,6 +221,15 @@ module.exports = function (app, passport, io) {
         res.json(newDeliver);
     });
 
+    app.get('/deliveriestoday2', async function (req, res) {
+        date = new Date();
+        console.log(date);
+
+        let distributions = await distribution.find({});
+        let filteredList= distributions.filter(x=>x.date.setHours(0,0,0,0)==date.setHours(0,0,0,0))
+        res.json(filteredList);
+    });
+
     app.post('/dispatch', function (req, res) {
         data = []
         for (let i = 0; i < req.body.latitude.length; i++) {
