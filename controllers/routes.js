@@ -1,34 +1,35 @@
 const skmeans = require("skmeans");
 const User = require("../models/user");
+const Message = require("../models/message");
 
 let listDistributors = [
     {
-    "id": 0,
-    "telephone": "05012345",
-    "name": "aaa",
-    "email": "a.gmail.com"
+        "id": 0,
+        "telephone": "05012345",
+        "name": "aaa",
+        "email": "a.gmail.com"
     },
     {
-    "id": 1,
-    "telephone": "05054321",
-    "name": "David",
-    "email": "david.gmail.com"
+        "id": 1,
+        "telephone": "05054321",
+        "name": "David",
+        "email": "david.gmail.com"
     },
     {
-    "id": 2,
-    "telephone": "05056789",
-    "name": "Avraham",
-    "email": "avraham.gmail.com"
+        "id": 2,
+        "telephone": "05056789",
+        "name": "Avraham",
+        "email": "avraham.gmail.com"
     },
 ]
 
 
 let productsToDistribute = [
     {
-    "name": "chocolate",
-    "date": "2021-08-30",
-    "address": "Jérusalem",
-    "id": 0,
+        "name": "chocolate",
+        "date": "2021-08-30",
+        "address": "Jérusalem",
+        "id": 0,
     },
     {
         "name": "milk",
@@ -75,7 +76,7 @@ let productsToDistribute = [
 ]
 
 
-module.exports = function (app, passport) {
+module.exports = function (app, passport, io) {
 
     // normal routes ===============================================================
     // app.use(cors());
@@ -115,282 +116,351 @@ module.exports = function (app, passport) {
         res.render('login.ejs', { message: req.flash('loginMessage') });
     });
 
-    app.put('/addDistributor', function(req, res)
-    {
-        let obj = {...req.body, id:listDistributors.length}
-        listDistributors.push(obj)
-        console.log(listDistributors)
-        res.json(listDistributors)
+    app.put('/addDistributor', function (req, res) {
+        let obj = {
+            ...req.body, id: listDistributors.length}
     });
+        app.post('/addDistributor', function (req, res) {
+            let obj = { ...req.body, id: listDistributors.length }
+            listDistributors.push(obj)
+            console.log(listDistributors)
+            res.json(listDistributors)
+        });
 
-    app.get('/distributors', function(req, res) {
-        res.json(listDistributors)
-    });
+        app.get('/distributors', function (req, res) {
+            res.json(listDistributors)
+        });
 
-    app.put('/distributors/:id', function(req, res) {
-        let index = listDistributors.findIndex(x => x.id == req.params.id)
-        if (index > -1)
-            listDistributors[index] = req.body;
-        res.json(listDistributors)
-    })
+        app.put('/distributors/:id', function (req, res) {
+            let index = listDistributors.findIndex(x => x.id == req.params.id)
+            if (index > -1)
+                listDistributors[index] = req.body;
+            res.json(listDistributors)
+        })
 
-    app.put('/addProduct', function(req, res)
-    {
-        let obj = {...req.body, id:productsToDistribute.length}
-        productsToDistribute.push(obj)
-        console.log(productsToDistribute)
-        res.json(productsToDistribute)
-    });
+        app.put('/addProduct', function (req, res) {
+            let obj = { ...req.body, id: productsToDistribute.length }
+        });
 
-    app.get('/products', function(req, res) {
-        res.json(productsToDistribute)
-    });
+        app.post('/addProduct', function (req, res) {
+            let obj = { ...req.body, id: productsToDistribute.length }
+            productsToDistribute.push(obj)
+            console.log(productsToDistribute)
+            res.json(productsToDistribute)
+        });
 
-    app.put('/distributions/:id', function(req, res) {
-        let index = productsToDistribute.findIndex(x => x.id == req.params.id)
-        if (index > -1)
-            productsToDistribute[index] = req.body;
-        res.json(productsToDistribute)
-    })
+        app.get('/products', function (req, res) {
+            res.json(productsToDistribute)
+        });
 
-    app.get('/deliveriestoday', function(req, res) {
-        date = new Date();
-        date = date.toISOString().split('T')[0];
-        newDeliver = []
-        productsToDistribute.map((p) =>
-        {
-            values = Object.values(p);
-            if ((values[1] === date) ) {
-                newDeliver = [...newDeliver, values];
+        app.put('/distributions/:id', function (req, res) {
+            let index = productsToDistribute.findIndex(x => x.id == req.params.id)
+            if (index > -1)
+                productsToDistribute[index] = req.body;
+            res.json(productsToDistribute)
+        })
+
+        app.get('/deliveriestoday', function (req, res) {
+            date = new Date();
+            date = date.toISOString().split('T')[0];
+            newDeliver = []
+            productsToDistribute.map((p) => {
+                values = Object.values(p);
+                if ((values[1] === date)) {
+                    newDeliver = [...newDeliver, values];
+                }
+            })
+            res.json(newDeliver);
+        });
+
+        app.post('/dispatch', function (req, res) {
+            data = []
+            for (let i = 0; i < req.body.latitude.length; i++) {
+                data = [...data, [req.body.latitude[i], req.body.longitude[i]]]
+            }
+            const k = req.body.dividersList.length;
+            results = skmeans(data, k, "kmpp", 10);
+            console.log(results)
+            res.json(results)
+        })
+
+        app.get('/messages', (req, res) => {
+            Message.find({}, (err, messages) => {
+                console.log(messages)
+                res.json(messages);
+            })
+        })
+
+        app.post('/myMessages', (req, res) => {
+            console.log("from" + req.body.from)
+            console.log("to" + req.body.to)
+            if (req.body.to)
+                Message.find({ $or: [{ from: req.body.from, to: req.body.to }, { from: req.body.to, to: req.body.from }] }, (err, messages) => {
+                    if (err) console.log(err)
+                    console.log(messages.count)
+                    res.json(messages);
+                })
+            else {
+                Message.find({ $or: [{ from: req.body.from }, { to: req.body.from }] }, (err, messages) => {
+                    if (err) console.log(err)
+                    console.log(messages.count)
+                    res.json(messages);
+                })
             }
         })
-        res.json(newDeliver);
-    });
 
-    app.post('/dispatch', function(req, res){
-        data = []
-        for (let i = 0; i < req.body.latitude.length; i++) {
-            data = [...data, [req.body.latitude[i], req.body.longitude[i]]]
-        }
-        const k = req.body.dividersList.length;
-        results = skmeans(data, k, "kmpp", 10);
-        console.log(results)
-        res.json(results)
-    })
+        app.post('/messages', (req, res) => {
+            var message = new Message(req.body);
+            console.log(req.body)
+            message.save((err) => {
+                if (err)
+                    res.sendStatus(500);
+                io.emit('message', req.body);
+                res.sendStatus(200);
+            })
+        })
 
+        io.on('connection', () => {
+            console.log('a user is connected')
+        })
 
-    // process the login form
-    app.post('/login1', passport.authenticate('local-login', {
-        successRedirect: 'http://localhost:3000/chat', // redirect to the secure profile section
-        failureRedirect: '/login', // redirect back to the signup page if there is an error
-        failureFlash: true // allow flash messages
-    }));
-
-    app.post('/login', function (req, res, next) {
-        passport.authenticate('local-login', function (err, user, info) {
-            if (err) { return next(err); }
-            if (!user) { return res.send(400); }
-            res.json({user:user})
-            // res.status(200).json({user:user});
-        })(req, res, next);
-    });
-
-    // SIGNUP =================================
-    // show the signup form
-    app.get('/signup', function (req, res) {
-        res.render('signup.ejs', { message: req.flash('signupMessage') });
-    });
-
-    // process the signup form
-    app.post('/signup', passport.authenticate('local-signup', {
-        successRedirect: 'http://localhost:3000/chat', // redirect to the secure profile section
-        failureRedirect: '/signup', // redirect back to the signup page if there is an error
-        failureFlash: true // allow flash messages
-    }));
-
-    app.post('/signup2', async (req, res) => {
-
-                console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
-
-                // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
-                //     debug("Missing user to add!!!");
-                // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
-                //     debug("Missing password for user to add!!!");
-                // else if (req.body.name === undefined || req.body.name === null || req.body.name === "")
-                //     debug("Missing name for  userto add!!!");
-                // else if (req.body.email === undefined || req.body.email === null || req.body.email === "")
-                //     debug("Missing name for  userto add!!!");
+        app.get('/users', (req, res) => {
+            User.find({}, (err, users) => {
+                res.json(users);
+            })
+        })
 
 
-                    try {
-                        console.log(req.body.email)
-                        user = await User.findOne({ 'local.email': req.body.email }).exec();
-                    } catch (err) {
-                        // console.log(err)
-                        debug(`get user for adding failure: ${err}`);
-                    }
-                    console.log(user)
-                    if (user === null)
-                        try {
-                            var newUser = new User();
-                            newUser.local.firstname= req.body.firstname;
-                            newUser.local.lastname= req.body.lastname;
-                            newUser.local.email    = req.body.email;
-                            newUser.local.password = newUser.generateHash(req.body.password);
-                            await newUser.save().catch(e=>console.log(e));
-                            //await User.CREATE([req.body.name, req.body.username, req.body.password, req.body.email, req.body.admin !== undefined]);
-                            debug('User created:' + user);
-                            res.sendStatus(200)
-                        } catch (err) {
-                            console.log(err)
-                            debug("Error creating a user: " + err);
-                        }
-                    else
-                        debug('User to be added already exists or checkin user existence failure!');
+        // process the login form
+        app.post('/login1', passport.authenticate('local-login', {
+            successRedirect: 'http://localhost:3000/chat', // redirect to the secure profile section
+            failureRedirect: '/login', // redirect back to the signup page if there is an error
+            failureFlash: true // allow flash messages
+        }));
+
+        app.post('/login', function (req, res, next) {
+            passport.authenticate('local-login', function (err, user, info) {
+                console.log("gggg")
+                if (err) { return next(err); }
+                console.log("user-->")
+
+                console.log(user)
+
+                if (!user) { return res.sendStatus(400); }
+                res.json({ user: user })
+            })(req, res, next);
+        });
+
+        // app.post('/login', passport.authenticate('local-login', {
+        //     successRedirect : '/profile', // redirect to the secure profile section
+        //     failureRedirect : '/login', // redirect back to the signup page if there is an error
+        //     failureFlash : true // allow flash messages
+        // }));
+
+        // SIGNUP =================================
+        // show the signup form
+        app.get('/signup', function (req, res) {
+            res.render('signup.ejs', { message: req.flash('signupMessage') });
+        });
+
+        // process the signup form
+        app.post('/signup', passport.authenticate('local-signup', {
+            successRedirect: 'http://localhost:3000/chat', // redirect to the secure profile section
+            failureRedirect: '/signup', // redirect back to the signup page if there is an error
+            failureFlash: true // allow flash messages
+        }));
+
+        app.post('/signup2', async (req, res) => {
+
+            console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
+
+            // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
+            //     debug("Missing user to add!!!");
+            // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
+            //     debug("Missing password for user to add!!!");
+            // else if (req.body.name === undefined || req.body.name === null || req.body.name === "")
+            //     debug("Missing name for  userto add!!!");
+            // else if (req.body.email === undefined || req.body.email === null || req.body.email === "")
+            //     debug("Missing name for  userto add!!!");
+
+
+            try {
+                //console.log(req.body.email)
+                user = await User.findOne({ 'local.email': req.body.email }).exec();
+            } catch (err) {
+                // console.log(err)
+                debug(`get user for adding failure: ${err}`);
+            }
+            //console.log(user)
+
+            if (user === null) {
+                console.log("user is null")
+                try {
+                    var newUser = new User();
+                    newUser.local.firstname = req.body.firstname;
+                    newUser.local.lastname = req.body.lastname;
+                    newUser.local.email = req.body.email;
+                    newUser.local.password = newUser.generateHash(req.body.password);
+                    await newUser.save().catch(e => console.log(e));
+                    //await User.CREATE([req.body.name, req.body.username, req.body.password, req.body.email, req.body.admin !== undefined]);
+                    //debug('User created:' + newUser);
+                    res.json({ user: newUser }).sendStatus(200)
+                } catch (err) {
+                    console.log(err)
+                    //debug("Error creating a user: " + err);
                 }
+            }
+            else {
+                console.log("fff")
+                //debug('User to be added already exists or checkin user existence failure!');
+                res.sendStatus(400)
+
+            }
+        }
 
             //.then(res.redirect('http://localhost:3000/chat'))
-    );
+        );
 
-    // facebook -------------------------------
+        // facebook -------------------------------
 
-    // send to facebook to do the authentication
-    app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['public_profile', 'email'] }));
+        // send to facebook to do the authentication
+        app.get('/auth/facebook', passport.authenticate('facebook', { scope: ['public_profile', 'email'] }));
 
-    // handle the callback after facebook has authenticated the user
-    app.get('/auth/facebook/callback',
-        passport.authenticate('facebook', {
-            successRedirect: 'http://localhost:3000/chat',
-            failureRedirect: '/'
-        }));
+        // handle the callback after facebook has authenticated the user
+        app.get('/auth/facebook/callback',
+            passport.authenticate('facebook', {
+                successRedirect: 'http://localhost:3000/chat',
+                failureRedirect: '/'
+            }));
 
-    // twitter --------------------------------
+        // twitter --------------------------------
 
-    // send to twitter to do the authentication
-    app.get('/auth/twitter', passport.authenticate('twitter', { scope: 'email' }));
+        // send to twitter to do the authentication
+        app.get('/auth/twitter', passport.authenticate('twitter', { scope: 'email' }));
 
-    // handle the callback after twitter has authenticated the user
-    app.get('/auth/twitter/callback',
-        passport.authenticate('twitter', {
-            successRedirect: '/profile',
-            failureRedirect: '/'
-        }));
-
-
-    // google ---------------------------------
-
-    // send to google to do the authentication
-    app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
-
-    // the callback after google has authenticated the user
-    app.get('/auth/google/callback',
-        passport.authenticate('google', {
-            successRedirect: 'http://localhost:3000/chat',
-            failureRedirect: '/'
-        }));
-
-    // =============================================================================
-    // AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
-    // =============================================================================
-
-    // locally --------------------------------
-    app.get('/connect/local', function (req, res) {
-        res.render('connect-local.ejs', { message: req.flash('loginMessage') });
-    });
-    app.post('/connect/local', passport.authenticate('local-signup', {
-        successRedirect: '/profile', // redirect to the secure profile section
-        failureRedirect: '/connect/local', // redirect back to the signup page if there is an error
-        failureFlash: true // allow flash messages
-    }));
-
-    // facebook -------------------------------
-
-    // send to facebook to do the authentication
-    app.get('/connect/facebook', passport.authorize('facebook', { scope: ['public_profile', 'email'] }));
-
-    // handle the callback after facebook has authorized the user
-    app.get('/connect/facebook/callback',
-        passport.authorize('facebook', {
-            successRedirect: '/profile',
-            failureRedirect: '/'
-        }));
-
-    // twitter --------------------------------
-
-    // send to twitter to do the authentication
-    app.get('/connect/twitter', passport.authorize('twitter', { scope: 'email' }));
-
-    // handle the callback after twitter has authorized the user
-    app.get('/connect/twitter/callback',
-        passport.authorize('twitter', {
-            successRedirect: '/profile',
-            failureRedirect: '/'
-        }));
+        // handle the callback after twitter has authenticated the user
+        app.get('/auth/twitter/callback',
+            passport.authenticate('twitter', {
+                successRedirect: '/profile',
+                failureRedirect: '/'
+            }));
 
 
-    // google ---------------------------------
+        // google ---------------------------------
 
-    // send to google to do the authentication
-    app.get('/connect/google', passport.authorize('google', { scope: ['profile', 'email'] }));
+        // send to google to do the authentication
+        app.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 
-    // the callback after google has authorized the user
-    app.get('/connect/google/callback',
-        passport.authorize('google', {
-            successRedirect: '/profile',
-            failureRedirect: '/'
-        }));
+        // the callback after google has authenticated the user
+        app.get('/auth/google/callback',
+            passport.authenticate('google', {
+                successRedirect: 'http://localhost:3000/chat',
+                failureRedirect: '/'
+            }));
 
-    // =============================================================================
-    // UNLINK ACCOUNTS =============================================================
-    // =============================================================================
-    // used to unlink accounts. for social accounts, just remove the token
-    // for local account, remove email and password
-    // user account will stay active in case they want to reconnect in the future
+        // =============================================================================
+        // AUTHORIZE (ALREADY LOGGED IN / CONNECTING OTHER SOCIAL ACCOUNT) =============
+        // =============================================================================
 
-    // local -----------------------------------
-    app.get('/unlink/local', isLoggedIn, function (req, res) {
-        var user = req.user;
-        user.local.email = undefined;
-        user.local.password = undefined;
-        user.save(function (err) {
-            res.redirect('/profile');
+        // locally --------------------------------
+        app.get('/connect/local', function (req, res) {
+            res.render('connect-local.ejs', { message: req.flash('loginMessage') });
         });
-    });
+        app.post('/connect/local', passport.authenticate('local-signup', {
+            successRedirect: '/profile', // redirect to the secure profile section
+            failureRedirect: '/connect/local', // redirect back to the signup page if there is an error
+            failureFlash: true // allow flash messages
+        }));
 
-    // facebook -------------------------------
-    app.get('/unlink/facebook', isLoggedIn, function (req, res) {
-        var user = req.user;
-        user.facebook.token = undefined;
-        user.save(function (err) {
-            res.redirect('/profile');
+        // facebook -------------------------------
+
+        // send to facebook to do the authentication
+        app.get('/connect/facebook', passport.authorize('facebook', { scope: ['public_profile', 'email'] }));
+
+        // handle the callback after facebook has authorized the user
+        app.get('/connect/facebook/callback',
+            passport.authorize('facebook', {
+                successRedirect: '/profile',
+                failureRedirect: '/'
+            }));
+
+        // twitter --------------------------------
+
+        // send to twitter to do the authentication
+        app.get('/connect/twitter', passport.authorize('twitter', { scope: 'email' }));
+
+        // handle the callback after twitter has authorized the user
+        app.get('/connect/twitter/callback',
+            passport.authorize('twitter', {
+                successRedirect: '/profile',
+                failureRedirect: '/'
+            }));
+
+
+        // google ---------------------------------
+
+        // send to google to do the authentication
+        app.get('/connect/google', passport.authorize('google', { scope: ['profile', 'email'] }));
+
+        // the callback after google has authorized the user
+        app.get('/connect/google/callback',
+            passport.authorize('google', {
+                successRedirect: '/profile',
+                failureRedirect: '/'
+            }));
+
+        // =============================================================================
+        // UNLINK ACCOUNTS =============================================================
+        // =============================================================================
+        // used to unlink accounts. for social accounts, just remove the token
+        // for local account, remove email and password
+        // user account will stay active in case they want to reconnect in the future
+
+        // local -----------------------------------
+        app.get('/unlink/local', isLoggedIn, function (req, res) {
+            var user = req.user;
+            user.local.email = undefined;
+            user.local.password = undefined;
+            user.save(function (err) {
+                res.redirect('/profile');
+            });
         });
-    });
 
-    // twitter --------------------------------
-    app.get('/unlink/twitter', isLoggedIn, function (req, res) {
-        var user = req.user;
-        user.twitter.token = undefined;
-        user.save(function (err) {
-            res.redirect('/profile');
+        // facebook -------------------------------
+        app.get('/unlink/facebook', isLoggedIn, function (req, res) {
+            var user = req.user;
+            user.facebook.token = undefined;
+            user.save(function (err) {
+                res.redirect('/profile');
+            });
         });
-    });
 
-    // google ---------------------------------
-    app.get('/unlink/google', isLoggedIn, function (req, res) {
-        var user = req.user;
-        user.google.token = undefined;
-        user.save(function (err) {
-            res.redirect('/profile');
+        // twitter --------------------------------
+        app.get('/unlink/twitter', isLoggedIn, function (req, res) {
+            var user = req.user;
+            user.twitter.token = undefined;
+            user.save(function (err) {
+                res.redirect('/profile');
+            });
         });
-    });
+
+        // google ---------------------------------
+        app.get('/unlink/google', isLoggedIn, function (req, res) {
+            var user = req.user;
+            user.google.token = undefined;
+            user.save(function (err) {
+                res.redirect('/profile');
+            });
+        });
+
+    };
 
 
-};
+    // route middleware to ensure user is logged in
+    function isLoggedIn(req, res, next) {
+        if (req.isAuthenticated())
+            return next();
 
-// route middleware to ensure user is logged in
-function isLoggedIn(req, res, next) {
-    if (req.isAuthenticated())
-        return next();
+        res.redirect('/');
+    }
 
-    res.redirect('/');
-}

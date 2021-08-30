@@ -4,11 +4,19 @@
 // get all the tools we need
 var express  = require('express');
 var app      = express();
-var port     = process.env.PORT || 8080;
+var cors = require('cors');
+app.use(
+  cors({
+    origin: "http://localhost:3000", // allow to server to accept request from different origin
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    credentials: true // allow session cookie from browser to pass through
+   })
+);var port     = process.env.PORT || 8080;
 var mongoose = require('mongoose');
 var passport = require('passport');
 var flash    = require('connect-flash');
-var cors = require('cors');
+const socket = require("socket.io");
+
 
 var morgan       = require('morgan');
 var cookieParser = require('cookie-parser');
@@ -20,10 +28,22 @@ var configDB = require('./config/database.js');
 // configuration ===============================================================
 mongoose.connect(configDB.url); // connect to our database
 
+// app.use((req, res, next) => {
+//   res.setHeader("Access-Control-Allow-Origin", "*");
+//   res.setHeader(
+//     "Access-Control-Allow-Methods",
+//     "OPTIONS, GET, POST, PUT, PATCH, DELETE"
+//   );
+//   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//   res.setHeader("Access-Control-Allow-Credentials", true);
+
+//   next(); // dont forget this
+// });
+
 require('./config/passport')(passport); // pass passport for configuration
 
 //const corsOptions = { origin: "http://localhost:3000"}
-app.use(cors());
+
 
 /*app.use(cors({
     origin: "http://localhost:3000",
@@ -35,11 +55,6 @@ app.use(morgan('dev')); // log every request to the console
 app.use(cookieParser()); // read cookies (needed for auth)
 app.use(bodyParser.urlencoded({extended : true}))
 .use(bodyParser.json());
-
-//app.use(bodyParser()); // get information from html forms
-
-//app.set('view engine', 'ejs'); // set up ejs for templating
-
 // required for passport
 app.use(session({ secret: 'ilovescotchscotchyscotchscotch' })); // session secret
 app.use(passport.initialize());
@@ -52,9 +67,14 @@ app.use(flash()); // use connect-flash for flash messages stored in session
 //     next();
 //   });
 
-// routes ======================================================================
-require('./controllers/routes.js')(app, passport); // load our routes and pass in our app and fully configured passport
-
 // launch ======================================================================
-app.listen(port);
+let server= app.listen(port);
+const io = socket(server,{cors: {
+    origin: "http://localhost:3000",
+    methods: ["GET", "POST"]
+  }});
 console.log('The magic happens on port ' + port);
+// routes ======================================================================
+require('./controllers/routes.js')(app, passport, io); // load our routes and pass in our app and fully configured passport
+
+
