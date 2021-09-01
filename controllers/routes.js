@@ -370,7 +370,7 @@ module.exports = function (app, passport, io) {
     app.post('/signup2', async (req, res) => {
 
         console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
-
+        let user;
         // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
         //     debug("Missing user to add!!!");
         // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
@@ -385,7 +385,7 @@ module.exports = function (app, passport, io) {
             //console.log(req.body.email)
             user = await User.findOne({ 'local.email': req.body.email }).exec();
         } catch (err) {
-            // console.log(err)
+            console.log(err)
             debug(`get user for adding failure: ${err}`);
         }
         //console.log(user)
