@@ -368,7 +368,7 @@ module.exports = function (app, passport, io) {
     }));
 
     app.post('/signup2', async (req, res) => {
-
+        let user;
         console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
         let user;
         // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
@@ -383,12 +383,12 @@ module.exports = function (app, passport, io) {
 
         try {
             //console.log(req.body.email)
-            user = await User.findOne({ 'local.email': req.body.email }).exec();
+            user = await User.findOne({ 'local.email': req.body.email });
         } catch (err) {
-            console.log(err)
+            console.log(err);
             debug(`get user for adding failure: ${err}`);
         }
-        //console.log(user)
+
 
         if (user === null) {
             console.log("user is null")
@@ -398,6 +398,8 @@ module.exports = function (app, passport, io) {
                 newUser.local.lastname = req.body.lastname;
                 newUser.local.email = req.body.email;
                 newUser.local.password = newUser.generateHash(req.body.password);
+                // newUser.isManager = false;
+                // newUser.telephone = "";
                 await newUser.save().catch(e => console.log(e));
                 //await User.CREATE([req.body.name, req.body.username, req.body.password, req.body.email, req.body.admin !== undefined]);
                 //debug('User created:' + newUser);
