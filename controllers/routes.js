@@ -194,6 +194,13 @@ module.exports = function (app, passport, io) {
         res.json(obj);
     })
 
+    app.post('/distributions/cities', async (req, res) => {
+        let list = await distribution.find({})
+        let cities= [...new Set(list.map(x=>x.city))]
+        res.json(cities);
+    })
+
+
     app.post('/addProduct', function (req, res) {
         let obj = { ...req.body, id: productsToDistribute.length }
         productsToDistribute.push(obj)
