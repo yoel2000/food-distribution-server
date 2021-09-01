@@ -368,7 +368,6 @@ module.exports = function (app, passport, io) {
     }));
 
     app.post('/signup2', async (req, res) => {
-        let user;
         console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
         let user;
         // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
