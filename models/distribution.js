@@ -7,7 +7,7 @@ var distributionSchema = mongoose.Schema({
         address: String,
         productIds: [{prodId:String,amount:Number}],
         distributorId: String,
-        isComplete:Boolean,
+        isCompleted:Boolean,
 });
 
 // create the model for users and expose it to our app

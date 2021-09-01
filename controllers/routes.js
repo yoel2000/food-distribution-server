@@ -250,18 +250,18 @@ module.exports = function (app, passport, io) {
         })
     });
 
-    app.get('/deliveriestoday', function (req, res) {
-        date = new Date();
-        date = date.toISOString().split('T')[0];
-        newDeliver = []
-        productsToDistribute.map((p) => {
-            values = Object.values(p);
-            if ((values[1] === date)) {
-                newDeliver = [...newDeliver, values];
-            }
-        })
-        res.json(newDeliver);
-    });
+    // app.get('/deliveriestoday', function (req, res) {
+    //     date = new Date();
+    //     date = date.toISOString().split('T')[0];
+    //     newDeliver = []
+    //     productsToDistribute.map((p) => {
+    //         values = Object.values(p);
+    //         if ((values[1] === date)) {
+    //             newDeliver = [...newDeliver, values];
+    //         }
+    //     })
+    //     res.json(newDeliver);
+    // });
 
     app.get('/deliveriestoday2', async function (req, res) {
         date = new Date();
@@ -271,6 +271,18 @@ module.exports = function (app, passport, io) {
         let filteredList = distributions.filter(x => x.date.setHours(0, 0, 0, 0) == date.setHours(0, 0, 0, 0))
         res.json(filteredList);
     });
+
+    
+    app.get('/deliveriestoday/:userid', async function (req, res) {
+        date = new Date();
+        console.log(req.params.userid);
+
+        let distributions = await distribution.find({});
+        let filteredList = distributions.filter(x => x.date.setHours(0, 0, 0, 0) == date.setHours(0, 0, 0, 0) && x.distributorId==req.params.userid)
+        res.json(filteredList);
+    });
+
+    
 
     app.post('/dispatch', function (req, res) {
         data = []
