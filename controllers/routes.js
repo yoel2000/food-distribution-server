@@ -143,8 +143,8 @@ module.exports = function (app, passport, io) {
     })
 
     app.put('/distributors2/:id', async function (req, res) {
-        await distribution.findByIdAndUpdate(req.params.id,req.body)
-        let list = await distribution.find({}); 
+        await distribution.findByIdAndUpdate(req.params.id, req.body)
+        let list = await distribution.find({});
         res.json(list)
     })
 
@@ -163,22 +163,36 @@ module.exports = function (app, passport, io) {
         res.json(list);
     })
 
-    app.get('/distributions/at/:date', async (req, res) => {
+    app.post('/distributions/at/', async (req, res) => {
         let list = await distribution.find({})
-        let date=new Date(req.params.date);
-        let filteredList= list.filter(x=>x.date == date)
-        res.json(filteredList);
+        let date = req.body.date;
+        let cityList = req.body.cityList;
+        let filteredList = list.filter(x => (x.date == date && cityList.includes(x.city)))
+        let obj= {};
+        cityList.forEach(x=>{
+            obj[x]=[];
+        })
+        filteredList.forEach(x=>{
+            obj[x.city].push(x)
+        })
+        res.json(obj);
     })
 
-    app.get('/distributions/between/:date1/:date2', async (req, res) => {
+    app.post('/distributions/between/', async (req, res) => {
         let list = await distribution.find({})
-        let date1=new Date(req.params.date1);
-        let date2=new Date(req.params.date2);
-        let filteredList= list.filter(x=>x.date>=date1&& x.date<=date2)
-        res.json(filteredList);
+        let date1 = req.body.date1;
+        let date2 = req.body.date2;
+        let cityList = req.body.cityList;
+        let filteredList = list.filter(x => (x.date >= date1 && x.date <= date2 && cityList.includes(x.city)))
+        let obj= {};
+        cityList.forEach(x=>{
+            obj[x]=[];
+        })
+        filteredList.forEach(x=>{
+            obj[x.city].push(x)
+        })
+        res.json(obj);
     })
-
-
 
     app.post('/addProduct', function (req, res) {
         let obj = { ...req.body, id: productsToDistribute.length }
@@ -250,7 +264,7 @@ module.exports = function (app, passport, io) {
         console.log(date);
 
         let distributions = await distribution.find({});
-        let filteredList= distributions.filter(x=>x.date.setHours(0,0,0,0)==date.setHours(0,0,0,0))
+        let filteredList = distributions.filter(x => x.date.setHours(0, 0, 0, 0) == date.setHours(0, 0, 0, 0))
         res.json(filteredList);
     });
 
@@ -265,8 +279,8 @@ module.exports = function (app, passport, io) {
         res.json(results)
     })
 
-    app.put('user/:id',async (req,res)=>{
-        let user= await user.updateOne({_id:req.params.id},req.body)
+    app.put('user/:id', async (req, res) => {
+        let user = await user.updateOne({ _id: req.params.id }, req.body)
         res.json(user)
     })
 
