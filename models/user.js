@@ -30,8 +30,7 @@ var userSchema = mongoose.Schema({
         name: String
     },
     isManager:Boolean,
-    
-
+    telephone: String,
 });
 
 // methods ======================
