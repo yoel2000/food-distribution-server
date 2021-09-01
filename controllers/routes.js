@@ -139,7 +139,7 @@ module.exports = function (app, passport, io) {
         res.json(listDistributors)
     })
 
-    app.put('/distributors2/:id', async function (req, res) {
+    app.put('/distributions/:id', async function (req, res) {
         await distribution.findByIdAndUpdate(req.params.id, req.body)
         let list = await distribution.find({});
         res.json(list)
@@ -191,7 +191,7 @@ module.exports = function (app, passport, io) {
         res.json(obj);
     })
 
-    app.post('/distributions/cities', async (req, res) => {
+    app.get('/distributions/cities', async (req, res) => {
         let list = await distribution.find({})
         let cities= [...new Set(list.map(x=>x.city))]
         res.json(cities);
@@ -236,12 +236,12 @@ module.exports = function (app, passport, io) {
         res.json(list);
     });
 
-    app.put('/distributions/:id', function (req, res) {
-        let index = productsToDistribute.findIndex(x => x.id == req.params.id)
-        if (index > -1)
-            productsToDistribute[index] = req.body;
-        res.json(productsToDistribute)
-    })
+    // app.put('/distributions/:id', function (req, res) {
+    //     let index = productsToDistribute.findIndex(x => x.id == req.params.id)
+    //     if (index > -1)
+    //         productsToDistribute[index] = req.body;
+    //     res.json(productsToDistribute)
+    // })
 
     app.get('/messages', (req, res) => {
         Message.find({}, (err, messages) => {
