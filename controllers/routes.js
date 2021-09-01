@@ -3,6 +3,7 @@ const User = require("../models/user");
 const Message = require("../models/message");
 const distribution = require("../models/distribution");
 const product = require("../models/product");
+const user = require("../models/user");
 
 let listDistributors = [
     {
@@ -141,6 +142,12 @@ module.exports = function (app, passport, io) {
         res.json(listDistributors)
     })
 
+    app.put('/distributors2/:id', async function (req, res) {
+        await distribution.findByIdAndUpdate(req.params.id,req.body)
+        let list = await distribution.find({}); 
+        res.json(list)
+    })
+
     app.post('/distributions', async (req, res) => {
         var dist = new distribution(req.body);
         dist.save((err) => {
@@ -155,6 +162,23 @@ module.exports = function (app, passport, io) {
         let list = await distribution.find({})
         res.json(list);
     })
+
+    app.get('/distributions/at/:date', async (req, res) => {
+        let list = await distribution.find({})
+        let date=new Date(req.params.date);
+        let filteredList= list.filter(x=>x.date == date)
+        res.json(filteredList);
+    })
+
+    app.get('/distributions/between/:date1/:date2', async (req, res) => {
+        let list = await distribution.find({})
+        let date1=new Date(req.params.date1);
+        let date2=new Date(req.params.date2);
+        let filteredList= list.filter(x=>x.date>=date1&& x.date<=date2)
+        res.json(filteredList);
+    })
+
+
 
     app.post('/addProduct', function (req, res) {
         let obj = { ...req.body, id: productsToDistribute.length }
@@ -239,6 +263,11 @@ module.exports = function (app, passport, io) {
         results = skmeans(data, k, "kmpp", 10);
         console.log(results)
         res.json(results)
+    })
+
+    app.put('user/:id',async (req,res)=>{
+        let user= await user.updateOne({_id:req.params.id},req.body)
+        res.json(user)
     })
 
     app.get('/messages', (req, res) => {
