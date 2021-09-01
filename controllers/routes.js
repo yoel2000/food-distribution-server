@@ -30,31 +30,31 @@ let listDistributors = [
 let productsToDistribute = [
     {
         "name": "chocolate",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "Jérusalem",
         "id": 0,
     },
     {
         "name": "milk",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "Tel Aviv",
         "id": 1,
     },
     {
         "name": "boyom",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "havaad haleumi",
         "id": 2,
     },
     {
         "name": "boyom",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "Ashkelon",
         "id": 3,
     },
     {
         "name": "a",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "בית שמש",
         "id": 4,
     },
@@ -66,13 +66,13 @@ let productsToDistribute = [
     },
     {
         "name": "c",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "Beer Sheva",
         "id": 6,
     },
     {
         "name": "d",
-        "date": "2021-08-30",
+        "date": "2021-08-31",
         "address": "Haifa",
         "id": 7,
     },
@@ -115,9 +115,6 @@ module.exports = function (app, passport, io) {
     // locally --------------------------------
     // LOGIN ===============================
     // show the login form
-    app.get('/login', function (req, res) {
-        res.render('login.ejs', { message: req.flash('loginMessage') });
-    });
 
     app.put('/addDistributor', function (req, res) {
         let obj = {
@@ -378,9 +375,8 @@ module.exports = function (app, passport, io) {
     }));
 
     app.post('/signup2', async (req, res) => {
-        let user;
         console.log("I'm here!!!!!!!!!!!!!!!!!!!!!!");
-
+        let user;
         // if (req.body.username === undefined || req.body.username === null || req.body.username === "")
         //     debug("Missing user to add!!!");
         // else if (req.body.password === undefined || req.body.password === null || req.body.password === "")
@@ -398,7 +394,7 @@ module.exports = function (app, passport, io) {
             console.log(err);
             debug(`get user for adding failure: ${err}`);
         }
-        
+
 
         if (user === null) {
             console.log("user is null")
