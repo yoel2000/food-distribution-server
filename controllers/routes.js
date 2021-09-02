@@ -181,7 +181,7 @@ module.exports = function (app, passport, io) {
         let date1 = req.body.date1;
         let date2 = req.body.date2;
         let cityList = req.body.cityList;
-        let filteredList = list.filter(x => (x.date >= date1 && x.date <= date2 && cityList.includes(x.city)))
+        let filteredList = list.filter(x => (new Date(x.date) >= new Date(date1) && new Date(x.date) <= new Date(date2) && cityList.includes(x.city)))
         let obj= {};
         cityList.forEach(x=>{
             obj[x]=[];
@@ -596,4 +596,6 @@ function isLoggedIn(req, res, next) {
 
     res.redirect('/');
 }
+
+
 
