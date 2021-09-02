@@ -132,12 +132,12 @@ module.exports = function (app, passport, io) {
         res.json(listDistributors)
     });
 
-    app.put('/distributors/:id', function (req, res) {
-        let index = listDistributors.findIndex(x => x.id == req.params.id)
-        if (index > -1)
-            listDistributors[index] = req.body;
-        res.json(listDistributors)
-    })
+    // app.put('/distributors/:id', function (req, res) {
+    //     let index = listDistributors.findIndex(x => x.id == req.params.id)
+    //     if (index > -1)
+    //         listDistributors[index] = req.body;
+    //     res.json(listDistributors)
+    // })
 
     app.put('/distributions/:id', async function (req, res) {
         await distribution.findByIdAndUpdate(req.params.id, req.body)
