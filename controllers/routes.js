@@ -4,6 +4,7 @@ const Message = require("../models/message");
 const distribution = require("../models/distribution");
 const product = require("../models/product");
 const user = require("../models/user");
+const post = require("../models/post");
 
 let listDistributors = [
     {
@@ -335,6 +336,21 @@ module.exports = function (app, passport, io) {
             res.sendStatus(200);
         })
     })
+
+    app.post('/addpost', (req, res) => {
+        var postData = new post(req.body);
+        postData.save().then( result => {
+            res.json(result);
+        }).catch(err => {
+            res.status(400).send("Unable to save data");
+        });
+    });
+
+    app.get('/posts', (req, res) => {
+        post.find({}, (err, posts) => {
+            res.json(posts)
+         });
+    });
 
     io.on('connection', () => {
         console.log('a user is connected')
